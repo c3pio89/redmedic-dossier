@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RESTRICTED // RM-3D-0917 // FEDERAL MEDICAL CORPS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap');
+
+:root {
+  --bg: #03030a;
+  --bg2: #060612;
+  --orange: #FF8C00;
+  --orange-dim: #CC6600;
+  --orange-bright: #FFB347;
+  --orange-glow: rgba(255,140,0,0.15);
+  --red: #8B0000;
+  --red-bright: #CC2200;
+  --red-glow: rgba(139,0,0,0.3);
+  --gray: #333344;
+  --gray-light: #555566;
+  --white: #DDDDEE;
+  --white-dim: #888899;
+  --crimson: #6B0000;
+  --scan: rgba(255,140,0,0.03);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--orange);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* Scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    var(--scan) 2px,
+    var(--scan) 4px
+  );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Vignette */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Boot screen */
+#boot-screen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: var(--bg);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.boot-line {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--orange-dim);
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+  width: 600px;
+  max-width: 90vw;
+}
+.boot-line.visible { opacity: 1; transform: translateX(0); }
+.boot-line.error { color: var(--red-bright); }
+.boot-line.success { color: var(--orange-bright); }
+.boot-line.warn { color: #FFD700; }
+
+.boot-progress {
+  width: 600px;
+  max-width: 90vw;
+  height: 2px;
+  background: var(--gray);
+  margin-top: 20px;
+  overflow: hidden;
+}
+.boot-bar {
+  height: 100%;
+  background: var(--orange);
+  width: 0%;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 10px var(--orange);
+}
+
+/* Main container */
+#main {
+  display: none;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+}
+
+/* Top classification bar */
+.top-bar {
+  background: var(--red);
+  padding: 8px 20px;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--orange-bright);
+  border-bottom: 2px solid var(--orange);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  text-shadow: 0 0 10px var(--orange);
+}
+
+.file-ref {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 20px;
+  font-size: 10px;
+  color: var(--orange-dim);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--gray);
+}
+
+/* Title block */
+.title-block {
+  border: 1px solid var(--orange);
+  padding: 30px;
+  margin: 30px 0 20px;
+  text-align: center;
+  position: relative;
+  background: linear-gradient(180deg, rgba(139,0,0,0.2) 0%, transparent 100%);
+  box-shadow: 0 0 30px rgba(139,0,0,0.3), inset 0 0 30px rgba(139,0,0,0.1);
+}
+
+.title-block::before,
+.title-block::after {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--orange-bright);
+  border-style: solid;
+}
+.title-block::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.title-block::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+.title-main {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  color: var(--orange-bright);
+  text-shadow: 0 0 20px var(--orange), 0 0 40px rgba(255,140,0,0.5);
+  letter-spacing: 8px;
+  animation: flicker 8s infinite;
+}
+
+.title-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: var(--orange-dim);
+  letter-spacing: 4px;
+  margin-top: 8px;
+}
+
+.title-cmdr {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  color: var(--white-dim);
+  letter-spacing: 6px;
+  margin-top: 12px;
+}
+
+@keyframes flicker {
+  0%, 95%, 100% { opacity: 1; }
+  96% { opacity: 0.8; }
+  97% { opacity: 1; }
+  98% { opacity: 0.7; }
+  99% { opacity: 1; }
+}
+
+/* Warning banner */
+.warning-banner {
+  background: rgba(139,0,0,0.3);
+  border: 1px solid var(--red-bright);
+  padding: 12px 20px;
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 12px;
+  color: var(--white);
+}
+
+.warning-icon {
+  font-size: 20px;
+  animation: pulse-warn 2s infinite;
+  color: var(--red-bright);
+}
+
+@keyframes pulse-warn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Section headers */
+.section-header {
+  background: var(--orange);
+  color: var(--bg);
+  padding: 6px 15px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin: 25px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 12px 100%);
+}
+
+/* Field rows */
+.field-row {
+  display: flex;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,140,0,0.1);
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.field-row:hover {
+  background: var(--orange-glow);
+}
+
+.field-label {
+  color: var(--orange-dim);
+  font-size: 11px;
+  min-width: 220px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.field-value {
+  color: var(--white);
+  font-size: 11px;
+  flex: 1;
+}
+
+.field-value.danger { color: var(--red-bright); font-weight: bold; }
+.field-value.success { color: var(--orange-bright); }
+.field-value.dim { color: var(--white-dim); }
+
+/* Redacted elements */
+.redacted {
+  display: inline-block;
+  background: #000;
+  color: transparent;
+  user-select: none;
+  cursor: not-allowed;
+  position: relative;
+  padding: 0 4px;
+  border-top: 1px solid var(--red);
+  border-bottom: 1px solid var(--red);
+  transition: all 0.3s;
+  min-width: 120px;
+}
+
+.redacted::after {
+  content: 'ACCESS DENIED';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--red-bright);
+  font-size: 8px;
+  letter-spacing: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.redacted:hover::after { opacity: 1; }
+.redacted:hover { background: rgba(139,0,0,0.3); }
+
+/* Operational phases */
+.phase-list { margin: 10px 0; }
+
+.phase-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 10px;
+  padding: 8px 10px;
+  margin: 4px 0;
+  border-left: 2px solid var(--gray);
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.phase-item:hover {
+  border-left-color: var(--orange);
+  background: var(--orange-glow);
+}
+
+.phase-tag {
+  background: var(--red);
+  color: var(--orange-bright);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 3px 6px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.phase-desc {
+  color: var(--white);
+  font-size: 11px;
+}
+
+.phase-status {
+  color: var(--white-dim);
+  font-size: 10px;
+  font-style: italic;
+  text-align: right;
+}
+
+.phase-status.open { color: var(--orange-bright); font-style: normal; font-weight: bold; animation: pulse-warn 2s infinite; }
+.phase-status.anomalous { color: #FFD700; }
+
+/* Awards */
+.award-item {
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-left: 3px solid var(--orange-dim);
+  background: rgba(255,140,0,0.05);
+}
+
+.award-name {
+  color: var(--orange);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.award-desc {
+  color: var(--white-dim);
+  font-size: 10px;
+  margin-top: 3px;
+  font-style: italic;
+}
+
+/* Text block */
+.text-block {
+  color: var(--white-dim);
+  font-size: 11px;
+  line-height: 1.8;
+  padding: 12px;
+  background: rgba(255,140,0,0.03);
+  border: 1px solid rgba(255,140,0,0.1);
+  margin: 10px 0;
+}
+
+/* Analyst note */
+.analyst-note {
+  background: rgba(255,215,0,0.05);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-left: 3px solid #FFD700;
+  padding: 10px 15px;
+  margin: 10px 0;
+  font-size: 10px;
+  color: rgba(255,215,0,0.8);
+  font-style: italic;
+}
+
+/* Assets */
+.asset-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--gray);
+}
+
+.asset-bullet { color: var(--orange); }
+.asset-name { color: var(--orange-bright); font-size: 12px; min-width: 200px; }
+.asset-note { color: var(--white-dim); font-size: 10px; font-style: italic; }
+
+/* Separator */
+.sep {
+  border: none;
+  border-top: 1px solid var(--orange-dim);
+  margin: 20px 0 5px;
+  opacity: 0.4;
+}
+
+.sep-thick {
+  border: none;
+  border-top: 2px solid var(--orange);
+  margin: 25px 0 5px;
+  box-shadow: 0 0 8px var(--orange);
+}
+
+/* INTERRUPT block */
+.interrupt-block {
+  border: 1px solid var(--orange-dim);
+  background: rgba(255,70,0,0.05);
+  padding: 30px;
+  text-align: center;
+  margin: 30px 0;
+  position: relative;
+  animation: glitch-block 10s infinite;
+}
+
+.interrupt-block::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 98%,
+    rgba(255,140,0,0.05) 98%,
+    rgba(255,140,0,0.05) 100%
+  );
+  pointer-events: none;
+}
+
+@keyframes glitch-block {
+  0%, 90%, 100% { transform: translateX(0); }
+  91% { transform: translateX(-2px); }
+  92% { transform: translateX(2px); }
+  93% { transform: translateX(-1px); }
+  94% { transform: translateX(0); }
+}
+
+.interrupt-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  color: var(--red-bright);
+  letter-spacing: 4px;
+  text-shadow: 0 0 15px var(--red-bright);
+  animation: pulse-warn 1.5s infinite;
+}
+
+.interrupt-date {
+  color: var(--orange-dim);
+  font-size: 14px;
+  margin-top: 10px;
+  letter-spacing: 2px;
+}
+
+.interrupt-lines {
+  color: var(--white-dim);
+  font-size: 12px;
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+
+/* Crimson Ledger watermark */
+.crimson-watermark {
+  position: fixed;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  font-size: 9px;
+  color: rgba(40,0,0,0.8);
+  letter-spacing: 3px;
+  pointer-events: none;
+  z-index: 500;
+  font-family: 'Share Tech Mono', monospace;
+  white-space: nowrap;
+}
+
+/* Bottom bar */
+.bottom-bar {
+  background: var(--red);
+  padding: 8px 20px;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--orange-bright);
+  margin-top: 40px;
+  position: sticky;
+  bottom: 0;
+}
+
+/* Decrypt button */
+.decrypt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--orange-dim);
+  color: var(--orange-dim);
+  padding: 8px 20px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: all 0.3s;
+  margin: 5px 0;
+}
+
+.decrypt-btn:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+  background: var(--orange-glow);
+  box-shadow: 0 0 15px var(--orange-glow);
+}
+
+/* Glitch text effect */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+
+.glitch::before {
+  color: var(--red-bright);
+  animation: glitch1 4s infinite;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+}
+
+.glitch::after {
+  color: #00ffff;
+  animation: glitch2 4s infinite;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+}
+
+@keyframes glitch1 {
+  0%, 90%, 100% { transform: translateX(0); opacity: 0; }
+  92% { transform: translateX(-3px); opacity: 0.8; }
+  94% { transform: translateX(3px); opacity: 0.6; }
+  96% { transform: translateX(0); opacity: 0; }
+}
+
+@keyframes glitch2 {
+  0%, 88%, 100% { transform: translateX(0); opacity: 0; }
+  90% { transform: translateX(3px); opacity: 0.8; }
+  92% { transform: translateX(-3px); opacity: 0.6; }
+  94% { transform: translateX(0); opacity: 0; }
+}
+
+/* Typewriter cursor */
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: var(--orange);
+  animation: blink 1s infinite;
+  vertical-align: bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* Scroll indicator */
+.scroll-hint {
+  text-align: center;
+  color: var(--orange-dim);
+  font-size: 10px;
+  letter-spacing: 3px;
+  padding: 10px;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+/* Corner decorations */
+.corner-deco {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-color: var(--orange-dim);
+  border-style: solid;
+}
+.corner-tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.corner-tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.corner-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+.corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+/* Fade in animation for sections */
+.section-wrap {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.6s ease;
+}
+.section-wrap.revealed { opacity: 1; transform: translateY(0); }
+
+/* Note field */
+.field-note {
+  font-size: 9px;
+  color: var(--white-dim);
+  font-style: italic;
+  padding: 3px 10px;
+  background: rgba(255,140,0,0.03);
+  border-left: 2px solid var(--orange-dim);
+  margin: 2px 0 4px 220px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- Boot screen -->
+<div id="boot-screen">
+  <div class="boot-line" id="b0">FEDERAL MEDICAL CORPS // ARCHIVE DIVISION v4.7.2</div>
+  <div class="boot-line" id="b1">Initializing secure terminal...</div>
+  <div class="boot-line" id="b2">Loading encryption modules... <span style="color:var(--orange-bright)">OK</span></div>
+  <div class="boot-line" id="b3">Establishing GalNet secure channel... <span style="color:var(--orange-bright)">OK</span></div>
+  <div class="boot-line" id="b4" class="warn">⚠  WARNING: Unauthorized access attempt detected [3x]</div>
+  <div class="boot-line" id="b5" class="warn">⚠  File integrity check... <span style="color:#FFD700">COMPROMISED</span></div>
+  <div class="boot-line" id="b6">Loading file: CL-RM3D-0917-████████...</div>
+  <div class="boot-line" id="b7" class="error">ERR: Level 6 clearance required for full access</div>
+  <div class="boot-line" id="b8" class="error">ERR: Partial file only — sections redacted per CMOG Protocol 7-Alpha</div>
+  <div class="boot-line" id="b9">Rendering available data...</div>
+  <div class="boot-progress"><div class="boot-bar" id="boot-bar"></div></div>
+</div>
+
+<!-- Crimson Ledger watermark -->
+<div class="crimson-watermark">C R I M S O N &nbsp; L E D G E R &nbsp; // &nbsp; INT.DIV. &nbsp; // &nbsp; DO NOT DISTRIBUTE</div>
+
+<!-- Main content -->
+<div id="main">
+
+  <div class="top-bar">⬛ RESTRICTED ACCESS — AUTHORIZED PERSONNEL ONLY — FEDERAL MEDICAL CORPS ⬛</div>
+  <div class="file-ref">
+    <span>FILE REF: CL-RM3D-0917-[REDACTED]</span>
+    <span>CLASSIFICATION: RESTRICTED // CMOG PROTOCOL 7-ALPHA</span>
+  </div>
+
+  <div style="padding: 0 10px;">
+
+    <!-- TITLE -->
+    <div class="title-block section-wrap" style="margin-top:20px;">
+      <div class="corner-deco corner-tl"></div>
+      <div class="corner-deco corner-tr"></div>
+      <div class="corner-deco corner-bl"></div>
+      <div class="corner-deco corner-br"></div>
+      <div class="title-main glitch" data-text="R3D MEDIC">R3D MEDIC</div>
+      <div class="title-sub">RETIRED. EXTREMELY. DANGEROUS.</div>
+      <div class="title-cmdr">CMDR REDMedic</div>
+      <div style="margin-top:15px; font-size:10px; color:var(--orange-dim); letter-spacing:2px;">
+        COMPILED FROM FEDERAL MEDICAL CORPS ARCHIVE // FIELD INTELLIGENCE SUPPLEMENT
+      </div>
+    </div>
+
+    <div class="warning-banner section-wrap">
+      <span class="warning-icon">⚠</span>
+      <span>This document contains LEVEL 5 restricted data. Unauthorized viewing is a criminal offense under Federal Security Act 3287. Multiple sections have been redacted per CMOG Protocol 7-Alpha. Hover redacted fields to confirm access status.</span>
+    </div>
+
+    <!-- SECTION I — IDENTITY -->
+    <div class="section-wrap">
+      <div class="section-header">◆ &nbsp; SECTION I — IDENTITY &nbsp; ◆</div>
+
+      <div class="field-row">
+        <div class="field-label">FULL NAME</div>
+        <div class="field-value"><span class="redacted">IGOR SIBIR████████████████</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">KNOWN ALIAS</div>
+        <div class="field-value success">REDMedic</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">CALLSIGN ORIGIN</div>
+        <div class="field-value">Retired. Extremely. Dangerous.</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">DATE OF BIRTH</div>
+        <div class="field-value"><span class="redacted">32██ // ██/██</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">REGION OF ORIGIN</div>
+        <div class="field-value"><span class="redacted">████████████████</span></div>
+      </div>
+      <div class="field-note">[ Known cultural markers: Siberian-descent colony, Alliance space // Exact system: SEALED — clearance level 5 ]</div>
+      <div class="field-row">
+        <div class="field-label">CURRENT STATUS</div>
+        <div class="field-value success">ACTIVE — CONFIRMED 3311</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">THREAT LEVEL</div>
+        <div class="field-value danger">EXTREMELY DANGEROUS</div>
+      </div>
+
+      <div class="analyst-note">
+        [FIELD NOTE] Subject's complete identity record exists within FMC Archive Level 5. This document contains only fragments cleared for operational intelligence use.
+      </div>
+    </div>
+
+    <hr class="sep-thick">
+
+    <!-- SECTION II — SERVICE RECORD -->
+    <div class="section-wrap">
+      <div class="section-header">◆ &nbsp; SECTION II — SERVICE RECORD &nbsp; ◆</div>
+
+      <div class="field-row">
+        <div class="field-label">PRIMARY SPEC</div>
+        <div class="field-value">Combat Medicine / Field Surgery</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">SECONDARY SPEC</div>
+        <div class="field-value"><span class="redacted">████████████████</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">YEARS ACTIVE SERVICE</div>
+        <div class="field-value">12+ <span class="dim">[details sealed]</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">THEATRE OF OPERATIONS</div>
+        <div class="field-value"><span class="redacted">CLASSIFIED — MULTIPLE THEATRES</span></div>
+      </div>
+
+      <div style="margin: 15px 0 8px; color: var(--orange); font-size: 11px; letter-spacing: 1px;">OPERATIONAL HISTORY:</div>
+
+      <div class="phase-list">
+        <div class="phase-item">
+          <div class="phase-tag">PHASE I</div>
+          <div class="phase-desc">Federal Medical Corps — Standard Deployment</div>
+          <div class="phase-status">3 years</div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-tag">PHASE II</div>
+          <div class="phase-desc">Combat Medical Operations Group — <span class="redacted">Assignment details</span></div>
+          <div class="phase-status"><span class="redacted">CLASSIFIED</span></div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-tag">PHASE III</div>
+          <div class="phase-desc"><span class="redacted">████████████████████████████████████████</span></div>
+          <div class="phase-status"><span class="redacted">CLEARANCE 5</span></div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-tag">PHASE IV</div>
+          <div class="phase-desc">HIP 22460 — <span class="redacted">OPERATION REDACTED</span></div>
+          <div class="phase-status anomalous">STATUS: ANOMALOUS</div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-tag">PHASE V</div>
+          <div class="phase-desc">Maelstrom TARANIS — Final recorded operation</div>
+          <div class="phase-status open">STATUS: OPEN</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="sep-thick">
+
+    <!-- SECTION III — COMMENDATIONS -->
+    <div class="section-wrap">
+      <div class="section-header">◆ &nbsp; SECTION III — COMMENDATIONS &nbsp; ◆</div>
+
+      <div class="award-item">
+        <div class="award-name">› Federal Combat Medical Cross</div>
+        <div class="award-desc">Orbital Station incident. 9 of 11 critical cases survived under fire. Duration: 6 hours.</div>
+      </div>
+      <div class="award-item">
+        <div class="award-name">› Alliance Frontier Service Medal</div>
+        <div class="award-desc">Border conflict operations. Collective award, full unit citation.</div>
+      </div>
+      <div class="award-item">
+        <div class="award-name">› Federal Medical Corps Commendation</div>
+        <div class="award-desc">Years of service — administrative citation.</div>
+      </div>
+      <div class="award-item" style="border-left-color: var(--gray);">
+        <div class="award-name" style="color: var(--gray-light);">› <span class="redacted">REDACTED — CLEARANCE 5</span></div>
+        <div class="award-desc"><span class="redacted">████████████████████████████████████████████████</span></div>
+      </div>
+      <div class="award-item" style="border-left-color: var(--gray);">
+        <div class="award-name" style="color: var(--gray-light);">› <span class="redacted">REDACTED — CLEARANCE 5</span></div>
+        <div class="award-desc"><span class="redacted">████████████████████████████████████████████████</span></div>
+      </div>
+
+      <div class="analyst-note">
+        [NOTE: Post-CMOG commendations sealed per discharge agreement. Public record shows 3 awards only.]
+      </div>
+    </div>
+
+    <hr class="sep-thick">
+
+    <!-- SECTION IV — PSYCHOLOGICAL PROFILE -->
+    <div class="section-wrap">
+      <div class="section-header">◆ &nbsp; SECTION IV — PSYCHOLOGICAL PROFILE &nbsp; ◆</div>
+
+      <div class="field-row">
+        <div class="field-label">FULL PROFILE</div>
+        <div class="field-value"><span class="redacted">CLEARANCE 4 REQUIRED — ACCESS DENIED</span></div>
+      </div>
+
+      <div style="margin: 12px 0 6px; color: var(--orange-dim); font-size: 11px;">SUMMARY (UNCLASSIFIED):</div>
+      <div class="text-block">
+        Subject demonstrates exceptional operational competence under sustained pressure. Independent decision-making tendency marked as significant. Resistant to hierarchical override without justification. <strong style="color:var(--orange)">NOT recommended</strong> for standard chain-of-command integration. Considered highly reliable within parameters of self-determined mission scope. Addresses commanders as partners, not superiors. Operates best without oversight.
+      </div>
+
+      <div class="analyst-note">
+        [FIELD NOTE — UNVERIFIED] Subject may have been physiologically altered by Proteus Wave secondary pulse, HIP 22460, 3308. Anomalies on medical record. Nature and significance: UNKNOWN. Connection to Taranis Titan response not ruled out. HOW DID HE SURVIVE HIP 22460?
+      </div>
+    </div>
+
+    <hr class="sep-thick">
+
+    <!-- SECTION V — DISCHARGE STATUS -->
+    <div class="section-wrap">
+      <div class="section-header">◆ &nbsp; SECTION V — DISCHARGE STATUS &nbsp; ◆</div>
+
+      <div class="field-row">
+        <div class="field-label">DISCHARGE TYPE</div>
+        <div class="field-value">Voluntary — Special Conditions Apply</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">CLASSIFICATION AT DISCHARGE</div>
+        <div class="field-value danger">EXTREMELY DANGEROUS</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">ASSETS TRANSFERRED</div>
+        <div class="field-value"><span class="redacted">LEVEL 4 REQUIRED</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">DATE OF DISCHARGE</div>
+        <div class="field-value">3309 <span class="dim">[exact date redacted]</span></div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">AGREEMENT TERMS</div>
+        <div class="field-value"><span class="redacted">SEALED — MUTUAL NON-DISCLOSURE</span></div>
+      </div>
+
+      <div class="warning-banner" style="margin:15px 0; border-color: var(--red-bright);">
+        <span class="warning-icon">⚠</span>
+        <span><strong>DISCHARGE NOTE:</strong> Subject possesses information classified at Level 6 or above. Retirement agreement includes permanent non-disclosure terms enforced under Special Conditions Protocol.</span>
+      </div>
+    </div>
+
+    <hr class="sep-thick">
+
+    <!-- SECTION VI — TARANIS INCIDENT -->
+    <div class="section-wrap">
+      <div class="section-header">◆ &nbsp; SECTION VI — TARANIS INCIDENT — 3309 &nbsp; ◆</div>
+
+      <div class="field-row">
+        <div class="field-label">INCIDENT TYPE</div>
+        <div class="field-value">Unauthorized entry — Thargoid Maelstrom (TARANIS)</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">STATED OBJECTIVE</div>
+        <div class="field-value">Extraction of human captives from Titan bio-storage chambers</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">OUTCOME</div>
+        <div class="field-value danger">SIGNAL LOST — SUBJECT STATUS: UNKNOWN</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">BODY RECOVERED</div>
+        <div class="field-value">NEGATIVE</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">CASE STATUS</div>
+        <div class="field-value success" style="animation: pulse-warn 2s infinite;">◉ &nbsp; OPEN</div>
+      </div>
+
+      <div class="text-block">
+        Subject entered Taranis Maelstrom without authorization approximately 8 months post-retirement. Succeeded in extracting an undisclosed number of human captives from Titan bio-storage. Upon attempting to exit, Titan structure responded with an anomalous pulse — distinct from standard repulsion discharge. Subject's ship was absorbed into Titan structure. No distress signal recorded. Subsequent signal anomalies detected near Taranis Graveyard sector consistent with subject's ship signature — logged 3311.
+      </div>
+
+      <div class="analyst-note">
+        [ANALYST NOTE — UNVERIFIED] Connection to HIP 22460 secondary pulse event (3308) not ruled out. Physiological pre-conditioning hypothesis filed under: CL-INT/HIP22460/RM3D. Investigating.
+      </div>
+    </div>
+
+    <hr class="sep-thick">
+
+    <!-- SECTION VII — CURRENT STATUS -->
+    <div class="section-wrap">
+      <div class="section-header">◆ &nbsp; SECTION VII — CURRENT STATUS &nbsp; ◆</div>
+
+      <div class="field-row">
+        <div class="field-label">ACTIVE</div>
+        <div class="field-value success">YES — CONFIRMED 3311</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">LOCATION</div>
+        <div class="field-value">UNCONFIRMED — last signal: Taranis Graveyard sector</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">THREAT STATUS</div>
+        <div class="field-value">MONITOR — non-hostile while retirement conditions maintained</div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">R3D MEDIC PROJECT</div>
+        <div class="field-value">Active — onboard AI system, ship-mounted digital projection</div>
+      </div>
+
+      <div style="margin: 15px 0 8px; color: var(--orange); font-size: 11px; letter-spacing: 1px;">KNOWN ASSETS:</div>
+
+      <div class="asset-item">
+        <span class="asset-bullet">›</span>
+        <span class="asset-name">Faulcon DeLacy Anaconda</span>
+        <span class="asset-note">Full config — transferred upon retirement [origin: see discharge note]</span>
+      </div>
+      <div class="asset-item">
+        <span class="asset-bullet">›</span>
+        <span class="asset-name">Imperial Clipper</span>
+        <span class="asset-note">Origin: classified operation — personal gratitude, source undisclosed</span>
+      </div>
+      <div class="asset-item">
+        <span class="asset-bullet">›</span>
+        <span class="asset-name">~80 Million Credits</span>
+        <span class="asset-note">Accumulated — 12 years CMOG service + enhanced pension coefficient</span>
+      </div>
+    </div>
+
+    <hr class="sep-thick">
+
+    <!-- INTERRUPT -->
+    <div class="interrupt-block section-wrap">
+      <div class="corner-deco corner-tl"></div>
+      <div class="corner-deco corner-tr"></div>
+      <div class="corner-deco corner-bl"></div>
+      <div class="corner-deco corner-br"></div>
+      <div class="interrupt-title">⚠ &nbsp; FILE TRANSFER INTERRUPTED &nbsp; ⚠</div>
+      <div class="interrupt-date">3309.08.17 — 02:14 GST</div>
+      <div class="interrupt-lines" style="margin-top:12px;">AUTHOR STATUS: UNKNOWN</div>
+      <div class="interrupt-lines">NEXT SCHEDULED TRANSMISSION: CANCELLED</div>
+      <div class="interrupt-lines" style="margin-top:12px; font-size:10px; color:var(--gray-light);">[DOCUMENT CONTINUES — CLEARANCE 5 REQUIRED]</div>
+      <button class="decrypt-btn" onclick="attemptDecrypt()" style="margin-top:20px;">
+        ▶ &nbsp; ATTEMPT DECRYPTION
+      </button>
+      <div id="decrypt-result" style="margin-top:10px; font-size:11px; color:var(--red-bright); display:none;">
+        CLEARANCE INSUFFICIENT — ACCESS DENIED — REQUEST LOGGED
+      </div>
+    </div>
+
+  </div><!-- end padding -->
+
+  <div class="bottom-bar">RESTRICTED — FEDERAL MEDICAL CORPS — CMOG ARCHIVE DIVISION</div>
+
+</div><!-- end main -->
+
+<script>
+// Boot sequence
+const bootLines = ['b0','b1','b2','b3','b4','b5','b6','b7','b8','b9'];
+const delays = [100, 400, 800, 1200, 1800, 2400, 3000, 3600, 4000, 4400];
+
+bootLines.forEach((id, i) => {
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('visible');
+  }, delays[i]);
+});
+
+// Progress bar
+let progress = 0;
+const bar = document.getElementById('boot-bar');
+const barInterval = setInterval(() => {
+  progress += Math.random() * 3;
+  if (progress >= 100) {
+    progress = 100;
+    clearInterval(barInterval);
+  }
+  bar.style.width = progress + '%';
+}, 60);
+
+// Show main content after boot
+setTimeout(() => {
+  const bootScreen = document.getElementById('boot-screen');
+  bootScreen.style.transition = 'opacity 0.8s ease';
+  bootScreen.style.opacity = '0';
+  setTimeout(() => {
+    bootScreen.style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+
+    // Reveal sections with stagger
+    const sections = document.querySelectorAll('.section-wrap');
+    sections.forEach((s, i) => {
+      setTimeout(() => s.classList.add('revealed'), i * 150);
+    });
+  }, 800);
+}, 5200);
+
+// Decrypt button
+function attemptDecrypt() {
+  const btn = document.querySelector('.decrypt-btn');
+  const result = document.getElementById('decrypt-result');
+  btn.style.display = 'none';
+
+  let dots = 0;
+  btn.textContent = 'DECRYPTING';
+  const interval = setInterval(() => {
+    dots++;
+    btn.textContent = 'DECRYPTING' + '.'.repeat(dots % 4);
+  }, 200);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    btn.style.display = 'none';
+    result.style.display = 'block';
+  }, 2500);
+}
+
+// Intersection observer for scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('revealed');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section-wrap').forEach(el => observer.observe(el));
+
+// Random glitch effect on redacted elements
+setInterval(() => {
+  const redacted = document.querySelectorAll('.redacted');
+  const random = redacted[Math.floor(Math.random() * redacted.length)];
+  if (random) {
+    random.style.opacity = '0.5';
+    setTimeout(() => random.style.opacity = '1', 100);
+  }
+}, 3000);
+</script>
+</body>
+</html>
